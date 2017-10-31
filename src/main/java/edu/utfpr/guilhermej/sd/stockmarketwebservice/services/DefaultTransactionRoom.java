@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 
 /**
  * Servente da sala de transações, trata chamadas à interface remotamente
@@ -34,48 +35,23 @@ public class DefaultTransactionRoom extends UnicastRemoteObject implements ITran
     }
 
     /**
-     * Cria uma ordem de compra de ações
-     * @param placer acionista requerente da ordem
-     * @param wantedStocks ações desejadas na compra
+     * Cria uma ordem de transação de ações
      * @return ordem de compra de ação criada
      * @throws RemoteException em erros de conexão
      */
     @Override
-    public StockOrder createBuyOrder(Stockholder placer, Stocks wantedStocks) throws RemoteException{
-        if(placer.getName() == null || placer.getName().isEmpty()
-                || placer.getId() == null || placer.getVersion() == null)
-            return null;
-        if(wantedStocks.getEnterprise() == null || wantedStocks.getEnterprise().isEmpty() ||
-                wantedStocks.getPrice() == null || wantedStocks.getQuantity() == null ||
-                wantedStocks.getVersion() == null)
-            return null;
-        StockOrder stockOrder = new BuyStockOrder()
-                .setStocks(wantedStocks)
-                .setOrderPlacer(placer);
-        manager.addOrder(stockOrder);
-        return stockOrder;
+    public void addOrder(StockOrder order) {
+        if(order == null)
+            throw new NullPointerException("Empty order");
+        if(order.getOrderPlacer() == null)
+            throw new NullPointerException("No order placer in order");
+        if(order.getStocks() == null)
+            throw new NullPointerException("No stocks in order");
+        manager.addOrder(order);
     }
 
-    /**
-     * Cria uma ordem de venda de ações
-     * @param placer acionista requerente da ordem
-     * @param sellingStocks ações sendo vendidas
-     * @return ordem de venda de ação criada
-     * @throws RemoteException em erros de conexão
-     */
     @Override
-    public StockOrder createSellOrder(Stockholder placer, Stocks sellingStocks) throws RemoteException {
-        if(placer.getName() == null || placer.getName().isEmpty()
-                || placer.getId() == null || placer.getVersion() == null)
-            return null;
-        if(sellingStocks.getEnterprise() == null || sellingStocks.getEnterprise().isEmpty() ||
-                sellingStocks.getPrice() == null || sellingStocks.getQuantity() == null ||
-                sellingStocks.getVersion() == null)
-            return null;
-        StockOrder stockOrder = new SellStockOrder()
-                .setStocks(sellingStocks)
-                .setOrderPlacer(placer);
-        manager.addOrder(stockOrder);
-        return stockOrder;
+    public List<StockOrder> listOrders() {
+        return manager.listOrders();
     }
 }

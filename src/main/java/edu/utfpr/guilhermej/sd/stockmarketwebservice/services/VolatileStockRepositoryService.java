@@ -118,14 +118,9 @@ public class VolatileStockRepositoryService implements IStockRepositoryService {
         }
     }
 
-    /**
-     * Simula flutuação de preços de ações
-     * @param random fornecedor de valor aleatórios
-     * @param price preço anterior à flutuação
-     * @return valor de preço aleatorizado
-     */
-    private double randomFluctuation(Random random, Double price) {
-        return Math.abs(price + random.nextGaussian()*0.2*price + random.nextGaussian());
+    @Override
+    public List<StockOrder> listOrders() {
+        return new ArrayList<>(allOrders);
     }
 
     /**

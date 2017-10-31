@@ -75,6 +75,12 @@ public abstract class StockOrder implements Serializable, Comparable<StockOrder>
         return id;
     }
 
+    private StockOrder setId(Long id){
+        if(id != null)
+            this.id = id;
+        return this;
+    }
+
     public Stocks getStocks() {
         return stocks;
     }
