@@ -86,18 +86,6 @@ public class StockEvent implements Serializable{
             .setObservable(triggerer);
     }
 
-    /** Cria novo evento de cotação de ação
-     * @param quotation novo valor de cotação
-     * @param previous valor antigo de cotação
-     * @return evento de cotação de ação
-     */
-    public static StockEvent createQuotationStockOrderEvent(StockQuotation quotation, StockQuotation previous){
-        return new StockEvent()
-                .setEventType(StockEventType.QUOTATION)
-                .setNewQuotation(quotation)
-                .setPreviousQuotation(previous);
-    }
-
     /**
      * Verifica se determinado acionista tem participou de alguma ordem de ação deste evento.
      * @param holder acionista para verificação
@@ -121,8 +109,6 @@ public class StockEvent implements Serializable{
             case UPDATED:
                 return getNewOrder() != null &&
                         holder.equals(getNewOrder().getOrderPlacer());
-            case QUOTATION:
-                return false;
         }
         return false;
     }
@@ -154,9 +140,6 @@ public class StockEvent implements Serializable{
             case UPDATED:
                 return  getNewOrder() != null &&
                             enterprise.trim().equalsIgnoreCase(getNewOrder().getStocks().getEnterprise().trim());
-            case QUOTATION:
-                return getNewQuotation() != null &&
-                            enterprise.trim().equalsIgnoreCase(getNewQuotation().getEnterprise().trim());
         }
         return false;
     }
@@ -246,6 +229,6 @@ public class StockEvent implements Serializable{
      * Enumeração descreve possível tipos de eventos
      */
     public enum StockEventType {
-        ADDED, REMOVED, UPDATED, TRADED, QUOTATION
+        ADDED, REMOVED, UPDATED, TRADED
     }
 }

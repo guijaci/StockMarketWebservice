@@ -4,16 +4,18 @@ import edu.utfpr.guilhermej.sd.stockmarketwebservice.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.Null;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Servente da sala de transações, trata chamadas à interface remotamente
  */
 @Service
 public class DefaultTransactionRoom extends UnicastRemoteObject implements ITransactionRoomService {
-    private IStockRepositoryService manager;
+    private IStockRepositoryService repositoryService;
 
     /**
      * Constroi uma nova sala de transação
@@ -30,7 +32,7 @@ public class DefaultTransactionRoom extends UnicastRemoteObject implements ITran
      */
     @Autowired
     public ITransactionRoomService setManager(IStockRepositoryService manager) {
-        this.manager = manager;
+        this.repositoryService = manager;
         return this;
     }
 
@@ -47,11 +49,27 @@ public class DefaultTransactionRoom extends UnicastRemoteObject implements ITran
             throw new NullPointerException("No order placer in order");
         if(order.getStocks() == null)
             throw new NullPointerException("No stocks in order");
-        manager.addOrder(order);
+        repositoryService.addOrder(order);
+    }
+
+    @Override
+    public void addSubscriberFilter(Stockholder subscriber, Predicate<StockEvent> filter) {
+        if(subscriber == null)
+            throw new NullPointerException("Empty subscriber");
+        if(filter == null)
+            throw new NullPointerException("Empty filter");
+        repositoryService.addSubscriberFilter(subscriber, filter);
+    }
+
+    @Override
+    public List<StockEvent> getEvents(Stockholder subscriber) {
+        if(subscriber == null)
+            throw new NullPointerException("Empty subscriber");
+        return repositoryService.getEvents(subscriber);
     }
 
     @Override
     public List<StockOrder> listOrders() {
-        return manager.listOrders();
+        return repositoryService.listOrders();
     }
 }

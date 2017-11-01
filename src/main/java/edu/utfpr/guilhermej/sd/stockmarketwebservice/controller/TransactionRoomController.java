@@ -2,12 +2,9 @@ package edu.utfpr.guilhermej.sd.stockmarketwebservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import edu.utfpr.guilhermej.sd.stockmarketwebservice.model.BuyStockOrder;
-import edu.utfpr.guilhermej.sd.stockmarketwebservice.model.SellStockOrder;
-import edu.utfpr.guilhermej.sd.stockmarketwebservice.model.StockOrder;
+import edu.utfpr.guilhermej.sd.stockmarketwebservice.model.*;
 import edu.utfpr.guilhermej.sd.stockmarketwebservice.services.ITransactionRoomService;
 import edu.utfpr.guilhermej.sd.stockmarketwebservice.utils.StringUtils;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -26,23 +23,50 @@ import java.util.stream.Collectors;
 
 @Controller
 public class TransactionRoomController {
-    private ITransactionRoomService transactionRoom;
+    private ITransactionRoomService transactionRoomService;
 
     @Autowired
-    public void setTransactionRoom(ITransactionRoomService transactionRoom) {
-        this.transactionRoom = transactionRoom;
+    public void setTransactionRoomService(ITransactionRoomService transactionRoomService) {
+        this.transactionRoomService = transactionRoomService;
     }
 
     @RequestMapping("/stock/order/buy")
     public ResponseEntity createStockOrder(@RequestBody BuyStockOrder order){
-        transactionRoom.addOrder(order);
+        transactionRoomService.addOrder(order);
         return ResponseEntity.ok(order);
     }
 
     @RequestMapping("/stock/order/sell")
     public ResponseEntity createStockOrder(@RequestBody SellStockOrder order){
-        transactionRoom.addOrder(order);
+        transactionRoomService.addOrder(order);
         return ResponseEntity.ok(order);
+    }
+
+    @RequestMapping("/stock/event/subscribe")
+    public ResponseEntity createSubscription(
+            @RequestBody Stockholder subscriber,
+            @RequestParam(value = "eventType")  StockEvent.StockEventType   eventType,
+            @RequestParam(value = "enterprise") String                      enterprise,
+            @RequestParam(value = "isBuying",   required = false)   Boolean isBuying,
+            @RequestParam(value = "isSelling",  required = false)   Boolean isSelling){
+        if((isBuying != null || isSelling != null) && !eventType.equals(StockEvent.StockEventType.ADDED))
+            throw new IllegalArgumentException("isBuying/isSelling arguments are valid only for ADDED type events");
+
+        Predicate<StockEvent> filter = event ->
+                event.isFromEnterprise(enterprise) && event.getEventType().equals(eventType);
+        if(isBuying != null)
+            filter = filter.and(event -> event.getNewOrder().isBuying() == isBuying);
+        if(isSelling != null)
+            filter = filter.and(event -> event.getNewOrder().isSelling() == isSelling);
+
+        transactionRoomService.addSubscriberFilter(subscriber, filter);
+        return ResponseEntity.ok(subscriber);
+    }
+
+    @RequestMapping("/stock/events")
+    public ResponseEntity RetrieveEvents(@RequestBody Stockholder subscriber){
+        List<StockEvent> events = transactionRoomService.getEvents(subscriber);
+        return ResponseEntity.ok(events);
     }
 
     @RequestMapping("/stock/order/list")
@@ -64,7 +88,7 @@ public class TransactionRoomController {
         if(isSellOrder != null)
             filter = filter.and(o -> o.isSelling() == isSellOrder);
 
-        List<StockOrder> list = transactionRoom.listOrders()
+        List<StockOrder> list = transactionRoomService.listOrders()
                 .parallelStream()
                 .filter(filter)
                 .collect(Collectors.toList());
