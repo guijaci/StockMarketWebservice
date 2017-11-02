@@ -149,7 +149,8 @@
         @Override
         public List<StockEvent> getEvents(Stockholder subscriber) {
             List<StockEvent> events = new LinkedList<>();
-            subscriptionEventsMap.get(subscriber).drainTo(events);
+            if(subscriptionEventsMap.containsKey(subscriber))
+                subscriptionEventsMap.get(subscriber).drainTo(events);
             return events;
         }
 
@@ -218,8 +219,10 @@
         private void launchEvent(StockEvent event) {
             synchronized (subscriptionFilterMap) {
                 subscriptionFilterMap.entrySet().parallelStream().forEach(p -> {
-                    if (p.getValue().test(event))
+                    if (p.getValue().test(event)) {
+                        initializeSubscribersEventQueue(p.getKey());
                         subscriptionEventsMap.get(p.getKey()).add(event);
+                    }
                 });
             }
         }

@@ -1,5 +1,7 @@
 package edu.utfpr.guilhermej.sd.stockmarketwebservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 
 /**
@@ -7,25 +9,23 @@ import java.io.Serializable;
  * quando houve uma transação ou o valor de cotação foi alterado
  */
 public class StockEvent implements Serializable{
+    @JsonIgnore
     private Object observable;
     private StockEventType eventType;
     private StockOrder newOrder;
-    private StockOrder previousOrder;
+    private StockOrder prevOrder;
     private StockOrder buyOrder;
     private StockOrder sellOrder;
     private Stocks tradedStock;
-    private StockQuotation newQuotation;
-    private StockQuotation previousQuotation;
 
     protected StockEvent(){
         observable = null;
         eventType = null;
-        previousOrder = null;
+        prevOrder = null;
         newOrder = null;
         buyOrder = null;
         sellOrder = null;
         tradedStock = null;
-        newQuotation = null;
     }
 
     /**
@@ -50,7 +50,7 @@ public class StockEvent implements Serializable{
     public static StockEvent createRemovedStockOrderEvent(StockOrder stockOrder, Object triggerer){
         return new StockEvent()
                 .setEventType(StockEventType.REMOVED)
-                .setPreviousOrder(stockOrder)
+                .setPrevOrder(stockOrder)
                 .setObservable(triggerer);
     }
 
@@ -64,7 +64,7 @@ public class StockEvent implements Serializable{
     public static StockEvent createUpdatedStockOrderEvent(StockOrder previousValue, StockOrder newValue, Object triggerer){
         return new StockEvent()
                 .setEventType(StockEventType.UPDATED)
-                .setPreviousOrder(previousValue)
+                .setPrevOrder(previousValue)
                 .setNewOrder(newValue)
                 .setObservable(triggerer);
     }
@@ -99,8 +99,8 @@ public class StockEvent implements Serializable{
                 return getNewOrder() != null &&
                         holder.equals(getNewOrder().getOrderPlacer());
             case REMOVED:
-                return getPreviousOrder() != null &&
-                        holder.equals(getPreviousOrder().getOrderPlacer());
+                return getPrevOrder() != null &&
+                        holder.equals(getPrevOrder().getOrderPlacer());
             case TRADED:
                 return (getBuyOrder() != null &&
                         holder.equals(getBuyOrder().getOrderPlacer())) ||
@@ -130,8 +130,8 @@ public class StockEvent implements Serializable{
                 return  getNewOrder() != null &&
                             enterprise.trim().equalsIgnoreCase(getNewOrder().getStocks().getEnterprise().trim());
             case REMOVED:
-                return  getPreviousOrder() != null &&
-                            enterprise.trim().equalsIgnoreCase(getPreviousOrder().getStocks().getEnterprise().trim());
+                return  getPrevOrder() != null &&
+                            enterprise.trim().equalsIgnoreCase(getPrevOrder().getStocks().getEnterprise().trim());
             case TRADED:
                 return  (getBuyOrder() != null &&
                             enterprise.trim().equalsIgnoreCase(getBuyOrder().getStocks().getEnterprise().trim())) ||
@@ -162,12 +162,12 @@ public class StockEvent implements Serializable{
         return this;
     }
 
-    public StockOrder getPreviousOrder() {
-        return previousOrder;
+    public StockOrder getPrevOrder() {
+        return prevOrder;
     }
 
-    public StockEvent setPreviousOrder(StockOrder previousOrder) {
-        this.previousOrder = previousOrder;
+    public StockEvent setPrevOrder(StockOrder prevOrder) {
+        this.prevOrder = prevOrder;
         return this;
     }
 
@@ -195,24 +195,6 @@ public class StockEvent implements Serializable{
 
     public StockEvent setSellOrder(StockOrder sellOrder) {
         this.sellOrder = sellOrder;
-        return this;
-    }
-
-    public StockQuotation getNewQuotation() {
-        return newQuotation;
-    }
-
-    public StockEvent setNewQuotation(StockQuotation newQuotation) {
-        this.newQuotation = newQuotation;
-        return this;
-    }
-
-    public StockQuotation getPreviousQuotation() {
-        return previousQuotation;
-    }
-
-    public StockEvent setPreviousQuotation(StockQuotation previousQuotation) {
-        this.previousQuotation = previousQuotation;
         return this;
     }
 

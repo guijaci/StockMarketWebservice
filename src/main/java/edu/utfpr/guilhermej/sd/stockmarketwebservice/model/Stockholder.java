@@ -58,4 +58,9 @@ public class Stockholder implements Serializable{
 
         return true;
     }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }
